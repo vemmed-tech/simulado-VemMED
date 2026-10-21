@@ -1,4 +1,5 @@
 export const BUBBLE_ENDPOINT = 'https://plano-milhoes-25.bubbleapps.io/api/1.1/wf/parceiros';
+export const PRODUCT = 'simulado';
 
 export function createBubblePayload(form, produto) {
   const value = (field) => String(form.elements.namedItem(`mauticform[${field}]`)?.value ?? '').trim();
@@ -34,8 +35,19 @@ export function attachBubbleSubmission(form, produto, {
     error.textContent = message;
   };
 
-  // Mautic still handles its response, success message and original redirect.
+  // Add the confirmed email and product before Mautic follows its configured redirect.
   const callback = (callbacks[formName] ??= {});
+  const previousResponseStart = callback.onResponseStart;
+  callback.onResponseStart = function (response) {
+    previousResponseStart?.call(this, response);
+    if ((response?.success === true || response?.success === 1) && !response.errorMessage &&
+        !Object.keys(response.validationErrors ?? {}).length && delivered && response.redirect) {
+      const destination = new URL(response.redirect, form.ownerDocument?.baseURI);
+      destination.searchParams.set('email', JSON.parse(delivered).email);
+      destination.searchParams.set('produto', PRODUCT);
+      response.redirect = destination.href;
+    }
+  };
   const previousResponseEnd = callback.onResponseEnd;
   callback.onResponseEnd = function (response) {
     pending = false;

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { BUBBLE_ENDPOINT, createBubblePayload, attachBubbleSubmission } from '../src/scripts/bubble-form.js';
+import { BUBBLE_ENDPOINT, PRODUCT, createBubblePayload, attachBubbleSubmission } from '../src/scripts/bubble-form.js';
 
 const component = readFileSync(new URL('../src/components/ContactPage.astro', import.meta.url), 'utf8');
 const product = component.match(/integrateBubbleForm\('([^']+)'\)/)[1];
@@ -114,5 +114,15 @@ test('retry after a Mautic response error does not duplicate confirmed Bubble da
   await f.submit();
   assert.equal(f.requests.length, 1);
   assert.deepEqual(f.calls, [false, true, false, true]);
+});
+
+test('successful Mautic redirect includes the submitted email and product slug', async () => {
+  const f = fixture();
+  await f.submit();
+  const response = { success: true, redirect: 'https://spp.vemmed.com/obrigado?origem=isca' };
+  f.callbacks.isca.onResponseStart(response);
+  const destination = new URL(response.redirect);
+  assert.equal(destination.searchParams.get('email'), 'ana@example.com');
+  assert.equal(destination.searchParams.get('produto'), PRODUCT);
 });
 
