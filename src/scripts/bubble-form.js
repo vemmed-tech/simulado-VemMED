@@ -1,4 +1,4 @@
-export const BUBBLE_ENDPOINT = 'https://plano-milhoes-25.bubbleapps.io/api/1.1/wf/parceiros';
+export const BUBBLE_ENDPOINT = 'https://flashcard-turbo.bubbleapps.io/api/1.1/wf/sign_up_simulado_vemmed';
 export const PRODUCT = 'simulado';
 
 export function createBubblePayload(form, produto) {
